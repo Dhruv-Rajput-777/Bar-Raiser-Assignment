@@ -60,7 +60,7 @@ const HierarchicalData = () => {
   };
 
   const checkSalary = (node) => {
-    const salary = node.salary;
+    const salary = parseInt(node.salary);
     if (
       salary >= filters.salary.lower_bound &&
       salary <= filters.salary.upper_bound
@@ -81,7 +81,9 @@ const HierarchicalData = () => {
           children: buildEmployeeTreeData(child.id, data),
         });
       } else {
-        childrens.push(...buildEmployeeTreeData(child.id, data));
+        let children = buildEmployeeTreeData(child.id, data);
+        console.log(children);
+        childrens.push(...children);
       }
     });
 
@@ -156,7 +158,7 @@ const HierarchicalData = () => {
       key={nodes.id}
       nodeId={nodes.id}
       label={`${nodes.name} (Salary : ${nodes.salary})`}
-      sx={{ padding: "0.5rem", width: "15rem" }}
+      sx={{ padding: "0.5rem", width: "fit-content" }}
     >
       {Array.isArray(nodes.children)
         ? nodes.children.map((node) => renderTree(node))
@@ -186,23 +188,28 @@ const HierarchicalData = () => {
       </div>
       <div style={{ padding: "2rem" }}>
         {employeeTreeData.length !== 0 ? (
-          <TreeView
-            aria-label="rich object"
-            defaultExpandIcon={
-              <AddCircleOutlineIcon
-                sx={{ color: "rgb(8,152,169)", fontSize: "1.6rem" }}
-              />
-            }
-            defaultExpanded={["root"]}
-            defaultCollapseIcon={
-              <RemoveCircleOutlineIcon
-                sx={{ color: "rgb(8,152,169)", fontSize: "1.6rem" }}
-              />
-            }
-            sx={{ flexGrow: 1 }}
-          >
-            {renderTree(employeeTreeData[0])}
-          </TreeView>
+          employeeTreeData.map((node) => {
+            console.log(node);
+            return (
+              <TreeView
+                aria-label="rich object"
+                defaultExpandIcon={
+                  <AddCircleOutlineIcon
+                    sx={{ color: "rgb(8,152,169)", fontSize: "1.6rem" }}
+                  />
+                }
+                defaultExpanded={["root"]}
+                defaultCollapseIcon={
+                  <RemoveCircleOutlineIcon
+                    sx={{ color: "rgb(8,152,169)", fontSize: "1.6rem" }}
+                  />
+                }
+                sx={{ flexGrow: 1 }}
+              >
+                {renderTree(node)}
+              </TreeView>
+            );
+          })
         ) : (
           <Typography variant="body2" sx={{ color: "red" }}>
             No Results found!
