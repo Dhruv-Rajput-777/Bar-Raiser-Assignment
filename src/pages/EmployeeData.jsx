@@ -163,8 +163,8 @@ const EmployeeData = () => {
       upper_bound: "",
     },
     salary: {
-      lower_bound: "",
-      upper_bound: "",
+      lower_bound: 0,
+      upper_bound: Number.MAX_VALUE,
     },
   });
 
@@ -186,8 +186,8 @@ const EmployeeData = () => {
         upper_bound: "",
       },
       salary: {
-        lower_bound: "",
-        upper_bound: "",
+        lower_bound: 0,
+        upper_bound: Number.MAX_VALUE,
       },
     });
   };

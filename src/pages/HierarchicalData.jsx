@@ -10,6 +10,8 @@ import TreeItem, { treeItemClasses } from "@mui/lab/TreeItem";
 import Collapse from "@mui/material/Collapse";
 // web.cjs is required for IE11 support
 import { useSpring, animated } from "@react-spring/web";
+import FilterModal from "../components/employeeTable/FilterModal";
+import { Typography } from "@mui/material";
 
 const HierarchicalData = () => {
   const { employeeData, loading, err } = useFetch({
@@ -17,18 +19,73 @@ const HierarchicalData = () => {
   });
 
   let [employeeTreeData, setEmployeeTreeData] = useState([]);
+  const [filters, setFilters] = useState({
+    dob: {
+      lower_bound: "",
+      upper_bound: "",
+    },
+    address: "",
+    joiningDate: {
+      lower_bound: "",
+      upper_bound: "",
+    },
+    salary: {
+      lower_bound: 0,
+      upper_bound: Number.MAX_VALUE,
+    },
+  });
+
+  const addFilters = (name, value) => {
+    setFilters((prevState) => {
+      return { ...prevState, [name]: value };
+    });
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      dob: {
+        lower_bound: "",
+        upper_bound: "",
+      },
+      address: "",
+      joiningDate: {
+        lower_bound: "",
+        upper_bound: "",
+      },
+      salary: {
+        lower_bound: 0,
+        upper_bound: Number.MAX_VALUE,
+      },
+    });
+  };
+
+  const checkSalary = (node) => {
+    const salary = node.salary;
+    if (
+      salary >= filters.salary.lower_bound &&
+      salary <= filters.salary.upper_bound
+    )
+      return true;
+    return false;
+  };
 
   const buildEmployeeTreeData = (parent, data) => {
     if (!data[parent] || data[parent].length === 0) return [];
-    let node = [];
+    let childrens = [];
     data[parent].forEach((child) => {
-      node.push({
-        id: child.id,
-        name: child.name,
-        children: buildEmployeeTreeData(child.id, data),
-      });
+      if (checkSalary(child)) {
+        childrens.push({
+          id: child.id,
+          name: child.name,
+          salary: child.salary,
+          children: buildEmployeeTreeData(child.id, data),
+        });
+      } else {
+        childrens.push(...buildEmployeeTreeData(child.id, data));
+      }
     });
-    return node;
+
+    return childrens;
   };
 
   useEffect(() => {
@@ -41,6 +98,7 @@ const HierarchicalData = () => {
         childEmployees["main"].push({
           id: data.id,
           name: data.first_name + " " + data.last_name,
+          salary: parseInt(data.salary.replace(",", "")),
         });
       } else {
         if (!childEmployees[data.manager_id])
@@ -48,13 +106,12 @@ const HierarchicalData = () => {
         childEmployees[data.manager_id].push({
           id: data.id,
           name: data.first_name + " " + data.last_name,
+          salary: parseInt(data.salary.replace(",", "")),
         });
       }
     });
-
-    // build tree
     setEmployeeTreeData(buildEmployeeTreeData("main", childEmployees));
-  }, [employeeData]);
+  }, [employeeData, filters]);
 
   function TransitionComponent(props) {
     const style = useSpring({
@@ -98,7 +155,7 @@ const HierarchicalData = () => {
     <StyledTreeItem
       key={nodes.id}
       nodeId={nodes.id}
-      label={nodes.name}
+      label={`${nodes.name} (Salary : ${nodes.salary})`}
       sx={{ padding: "0.5rem", width: "15rem" }}
     >
       {Array.isArray(nodes.children)
@@ -110,6 +167,23 @@ const HierarchicalData = () => {
   return (
     <div>
       <Navbar />
+      <div
+        style={{
+          padding: "1rem 0 0 2rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "1rem",
+        }}
+      >
+        <FilterModal
+          filters={filters}
+          addFilters={addFilters}
+          resetFilters={resetFilters}
+        />
+        <Typography variant="body2" sx={{ color: "red" }}>
+          Works on salary only!
+        </Typography>
+      </div>
       <div style={{ padding: "2rem" }}>
         {employeeTreeData.length !== 0 ? (
           <TreeView
@@ -129,7 +203,11 @@ const HierarchicalData = () => {
           >
             {renderTree(employeeTreeData[0])}
           </TreeView>
-        ) : null}
+        ) : (
+          <Typography variant="body2" sx={{ color: "red" }}>
+            No Results found!
+          </Typography>
+        )}
       </div>
     </div>
   );

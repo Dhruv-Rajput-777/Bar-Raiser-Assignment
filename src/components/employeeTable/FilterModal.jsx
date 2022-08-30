@@ -149,11 +149,16 @@ const FilterModal = ({ filters, addFilters, resetFilters }) => {
                   type="number"
                   name="salary"
                   sx={{ fontSize: "0.8rem" }}
-                  value={filters.salary.upper_bound}
+                  value={
+                    filters.salary.upper_bound == Number.MAX_VALUE
+                      ? ""
+                      : filters.salary.upper_bound
+                  }
                   onChange={(e) => {
                     addFilters(e.target.name, {
                       lower_bound: filters.salary.lower_bound,
-                      upper_bound: e.target.value,
+                      upper_bound:
+                        e.target.value == 0 ? Number.MAX_VALUE : e.target.value,
                     });
                   }}
                 />
